@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+"""""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """
 '                                                                         '
 ' Copyright 2018-2022 Gauthier Brière (gauthier.briere "at" gmail.com)    '
 '                                                                         '
@@ -19,26 +19,29 @@
 ' You should have received a copy of the GNU General Public License       '
 ' along with this program.  If not, see <http://www.gnu.org/licenses/>.   '
 '                                                                         '
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """"""
 
-import sys, os
+import os
+import sys
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class cnQLabel(QtWidgets.QLabel):
-  '''
-  QLabel avec gestion de click
-  '''
+    """
+    QLabel avec gestion de click
+    """
 
-  clicked     = QtCore.pyqtSignal(str, QtGui.QMouseEvent)
-  doubleClick = QtCore.pyqtSignal(str, QtGui.QMouseEvent)
+    clicked = QtCore.pyqtSignal(str, QtGui.QMouseEvent)
+    doubleClick = QtCore.pyqtSignal(str, QtGui.QMouseEvent)
 
-  def __init__(self, parent=None):
-    super(cnQLabel, self).__init__(parent=parent)
+    def __init__(self, parent=None):
+        super(cnQLabel, self).__init__(parent=parent)
 
-  def mouseReleaseEvent(self, e):
-    super(cnQLabel, self).mouseReleaseEvent(e)
-    self.clicked.emit(self.text(), e)
+    def mouseReleaseEvent(self, e):
+        super(cnQLabel, self).mouseReleaseEvent(e)
+        self.clicked.emit(self.text(), e)
 
-  def mouseDoubleClickEvent(self, e):
-    super(cnQLabel, self).mouseDoubleClickEvent(e)
-    self.doubleClick.emit(self.text(), e)
+    def mouseDoubleClickEvent(self, e):
+        super(cnQLabel, self).mouseDoubleClickEvent(e)
+        self.doubleClick.emit(self.text(), e)

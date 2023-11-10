@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+"""""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """
 '                                                                         '
 ' Copyright 2018-2022 Gauthier Brière (gauthier.briere "at" gmail.com)    '
 '                                                                         '
@@ -20,45 +20,48 @@
 ' You should have received a copy of the GNU General Public License       '
 ' along with this program.  If not, see <http://www.gnu.org/licenses/>.   '
 '                                                                         '
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """"""
+
+from cx_Freeze import Executable, setup
 
 from cn5X_config import *
-from cx_Freeze import setup, Executable
 
 # Dependencies are automatically detected, but it might need
 # fine tuning.
-buildOptions = dict(packages = [], excludes = [],
-                    include_files = ['COPYING',
-                                      ('i18n/flags/flag_fr.svg', 'i18n/flags/flag_fr.svg'),
-                                      ('i18n/flags/flag_en.svg', 'i18n/flags/flag_en.svg'),
-                                      ('i18n/flags/flag_es.svg', 'i18n/flags/flag_es.svg'),
-                                      ('i18n/flags/flag_pt.svg', 'i18n/flags/flag_pt.svg'),
-                                      ('i18n/cn5X.fr.qm', 'i18n/cn5X.fr.qm'),
-                                      ('i18n/cn5X.en.qm', 'i18n/cn5X.en.qm'),
-                                      ('i18n/cn5X.es.qm', 'i18n/cn5X.es.qm'),
-                                      ('i18n/cn5X.pt.qm', 'i18n/cn5X.pt.qm'),
-                                      ('i18n/cn5X_locales.xml', 'i18n/cn5X_locales.xml'),
-                                      ('i18n/cn5X_locales.xsd', 'i18n/cn5X_locales.xsd')
-                                    ]
-                    )
+buildOptions = dict(
+    packages=[],
+    excludes=[],
+    include_files=[
+        "COPYING",
+        ("i18n/flags/flag_fr.svg", "i18n/flags/flag_fr.svg"),
+        ("i18n/flags/flag_en.svg", "i18n/flags/flag_en.svg"),
+        ("i18n/flags/flag_es.svg", "i18n/flags/flag_es.svg"),
+        ("i18n/flags/flag_pt.svg", "i18n/flags/flag_pt.svg"),
+        ("i18n/cn5X.fr.qm", "i18n/cn5X.fr.qm"),
+        ("i18n/cn5X.en.qm", "i18n/cn5X.en.qm"),
+        ("i18n/cn5X.es.qm", "i18n/cn5X.es.qm"),
+        ("i18n/cn5X.pt.qm", "i18n/cn5X.pt.qm"),
+        ("i18n/cn5X_locales.xml", "i18n/cn5X_locales.xml"),
+        ("i18n/cn5X_locales.xsd", "i18n/cn5X_locales.xsd"),
+    ],
+)
 
 import sys
-base = 'Win32GUI' if sys.platform=='win32' else None
+
+base = "Win32GUI" if sys.platform == "win32" else None
 
 
+executables = [Executable("cn5X.py", base=base)]
 
-executables = [
-    Executable('cn5X.py', base=base)
-]
-
-setup(name='cn5X++',
-  version = APP_VERSION_STRING,
-  description = '5/6 axis Grbl control panel for grbl-Mega-5X',
-  author = 'Gauthier Brière',
-  install_requires = [
-    'pyqt5',
-    'pyserial',
+setup(
+    name="cn5X++",
+    version=APP_VERSION_STRING,
+    description="5/6 axis Grbl control panel for grbl-Mega-5X",
+    author="Gauthier Brière",
+    install_requires=[
+        "pyqt5",
+        "pyserial",
     ],
-  options = dict(build_exe = buildOptions),
-  executables = executables
-  )
+    options=dict(build_exe=buildOptions),
+    executables=executables,
+)

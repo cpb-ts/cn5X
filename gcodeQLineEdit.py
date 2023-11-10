@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+"""""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """
 '                                                                         '
 ' Copyright 2018-2022 Gauthier Brière (gauthier.briere "at" gmail.com)    '
 '                                                                         '
@@ -19,19 +19,21 @@
 ' You should have received a copy of the GNU General Public License       '
 ' along with this program.  If not, see <http://www.gnu.org/licenses/>.   '
 '                                                                         '
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """"""
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class gcodeQLineEdit(QtWidgets.QLineEdit):
-  '''
-  QlineEdit avec ajout de l'evennement KeyPressed
-  '''
-  keyPressed = QtCore.pyqtSignal(QtGui.QKeyEvent)
+    """
+    QlineEdit avec ajout de l'evennement KeyPressed
+    """
 
-  def __init__(self, parent=None):
-    QtWidgets.QLineEdit.__init__(self, parent)
+    keyPressed = QtCore.pyqtSignal(QtGui.QKeyEvent)
 
-  def keyPressEvent(self, event):
-    super(gcodeQLineEdit, self).keyPressEvent(event)
-    self.keyPressed.emit(event)
+    def __init__(self, parent=None):
+        QtWidgets.QLineEdit.__init__(self, parent)
+
+    def keyPressEvent(self, event):
+        super(gcodeQLineEdit, self).keyPressEvent(event)
+        self.keyPressed.emit(event)

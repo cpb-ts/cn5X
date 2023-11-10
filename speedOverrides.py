@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+"""""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """
 '                                                                         '
 ' Copyright 2018-2022 Gauthier Brière (gauthier.briere "at" gmail.com)    '
 '                                                                         '
@@ -19,41 +19,41 @@
 ' You should have received a copy of the GNU General Public License       '
 ' along with this program.  If not, see <http://www.gnu.org/licenses/>.   '
 '                                                                         '
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """"""
 
 from cn5X_config import *
 from grblCom import grblCom
 
+
 def adjustFeedOverride(valeurDepart: int, valeurArrivee: int, grbl: grblCom):
-  valeurCourante = valeurDepart
-  while valeurCourante != valeurArrivee:
-    if valeurCourante <= valeurArrivee - 10:
-      grbl.realTimePush(REAL_TIME_FEED_PLUS_10, COM_FLAG_NO_OK)
-      valeurCourante += 10
-    elif valeurCourante < valeurArrivee:
-      grbl.realTimePush(REAL_TIME_FEED_PLUS_1, COM_FLAG_NO_OK)
-      valeurCourante += 1
-    elif valeurCourante >= valeurArrivee + 10:
-      grbl.realTimePush(REAL_TIME_FEED_MOINS_10, COM_FLAG_NO_OK)
-      valeurCourante -= 10
-    elif valeurCourante > valeurArrivee:
-      grbl.realTimePush(REAL_TIME_FEED_MOINS_1, COM_FLAG_NO_OK)
-      valeurCourante -= 1
+    valeurCourante = valeurDepart
+    while valeurCourante != valeurArrivee:
+        if valeurCourante <= valeurArrivee - 10:
+            grbl.realTimePush(REAL_TIME_FEED_PLUS_10, COM_FLAG_NO_OK)
+            valeurCourante += 10
+        elif valeurCourante < valeurArrivee:
+            grbl.realTimePush(REAL_TIME_FEED_PLUS_1, COM_FLAG_NO_OK)
+            valeurCourante += 1
+        elif valeurCourante >= valeurArrivee + 10:
+            grbl.realTimePush(REAL_TIME_FEED_MOINS_10, COM_FLAG_NO_OK)
+            valeurCourante -= 10
+        elif valeurCourante > valeurArrivee:
+            grbl.realTimePush(REAL_TIME_FEED_MOINS_1, COM_FLAG_NO_OK)
+            valeurCourante -= 1
 
 
 def adjustSpindleOverride(valeurDepart: int, valeurArrivee: int, grbl: grblCom):
-  valeurCourante = valeurDepart
-  while valeurCourante != valeurArrivee:
-    if valeurCourante <= valeurArrivee - 10:
-      grbl.realTimePush(REAL_TIME_SPINDLE_PLUS_10, COM_FLAG_NO_OK)
-      valeurCourante += 10
-    elif valeurCourante < valeurArrivee:
-      grbl.realTimePush(REAL_TIME_SPINDLE_PLUS_1, COM_FLAG_NO_OK)
-      valeurCourante += 1
-    elif valeurCourante >= valeurArrivee + 10:
-      grbl.realTimePush(REAL_TIME_SPINDLE_MOINS_10, COM_FLAG_NO_OK)
-      valeurCourante -= 10
-    elif valeurCourante > valeurArrivee:
-      grbl.realTimePush(REAL_TIME_SPINDLE_MOINS_1, COM_FLAG_NO_OK)
-      valeurCourante -= 1
-
+    valeurCourante = valeurDepart
+    while valeurCourante != valeurArrivee:
+        if valeurCourante <= valeurArrivee - 10:
+            grbl.realTimePush(REAL_TIME_SPINDLE_PLUS_10, COM_FLAG_NO_OK)
+            valeurCourante += 10
+        elif valeurCourante < valeurArrivee:
+            grbl.realTimePush(REAL_TIME_SPINDLE_PLUS_1, COM_FLAG_NO_OK)
+            valeurCourante += 1
+        elif valeurCourante >= valeurArrivee + 10:
+            grbl.realTimePush(REAL_TIME_SPINDLE_MOINS_10, COM_FLAG_NO_OK)
+            valeurCourante -= 10
+        elif valeurCourante > valeurArrivee:
+            grbl.realTimePush(REAL_TIME_SPINDLE_MOINS_1, COM_FLAG_NO_OK)
+            valeurCourante -= 1

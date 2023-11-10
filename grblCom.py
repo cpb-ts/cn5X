@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+"""""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """
 '                                                                         '
 ' Copyright 2018-2022 Gauthier Brière (gauthier.briere "at" gmail.com)    '
 '                                                                         '
@@ -19,242 +19,280 @@
 ' You should have received a copy of the GNU General Public License       '
 ' along with this program.  If not, see <http://www.gnu.org/licenses/>.   '
 '                                                                         '
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """"""
 
-import sys, time
+import sys
+import time
 from math import *
+
 from PyQt5 import QtCore
-from PyQt5.QtCore import QCoreApplication, QObject, QThread, QTimer, QEventLoop, pyqtSignal, pyqtSlot, QIODevice
+from PyQt5.QtCore import (
+    QCoreApplication,
+    QEventLoop,
+    QIODevice,
+    QObject,
+    QThread,
+    QTimer,
+    pyqtSignal,
+    pyqtSlot,
+)
+
 from cn5X_config import *
 from grblComSerial import grblComSerial
 
-GCODE_PARAMETER_OUTPUT_CHANGE_CMD = ["G10", "G28.1", "G30.1", "G38", "G43.1", "G49", "G92"]
+GCODE_PARAMETER_OUTPUT_CHANGE_CMD = [
+    "G10",
+    "G28.1",
+    "G30.1",
+    "G38",
+    "G43.1",
+    "G49",
+    "G92",
+]
 GCODE_SYSTEM_COORDINATE_CHANGE_CMD = ["G54", "G55", "G56", "G57", "G58", "G59"]
 
+
 class grblCom(QObject):
-  '''
-  Gestion du thread de communication serie avec Grbl
-  '''
+    """
+    Gestion du thread de communication serie avec Grbl
+    """
 
-  # Reprise des signaux venant du thread de Com a faire suivre
-  sig_log        = pyqtSignal(int, str) # Message de fonctionnement du composant grblComSerial, renvoie : logSeverity, message string
-  sig_connect    = pyqtSignal()         # Emis a la reception de la connexion
-  sig_init       = pyqtSignal(str)      # Emis a la reception de la chaine d'initialisation de Grbl, renvoie la chaine complete
-  sig_ok         = pyqtSignal()         # Emis a la reception de la chaine "ok"
-  sig_error      = pyqtSignal(int)      # Emis a la reception d'une erreur Grbl, renvoie le N° d'erreur
-  sig_alarm      = pyqtSignal(int)      # Emis a la reception d'une alarme Grbl, renvoie le N° d'alarme
-  sig_status     = pyqtSignal(str)      # Emis a la reception d'un message de status ("<...|.>"), renvoie la ligne complete
-  sig_config     = pyqtSignal(str)      # Emis a la reception d'une valeur de config ($XXX)
-  sig_data       = pyqtSignal(str)      # Emis a la reception des autres donnees de Grbl, renvoie la ligne complete
-  sig_probe      = pyqtSignal(str)      # Emis a la reception d'un résultat de probe
-  sig_emit       = pyqtSignal(str)      # Emis a l'envoi des donnees sur le port serie
-  sig_recu       = pyqtSignal(str)      # Emis a la reception des donnees sur le port serie
-  sig_debug      = pyqtSignal(str)      # Emis a chaque envoi ou reception
-  sig_activity   = pyqtSignal(bool)     # Emis a chaque changement de self.__okToSendGCode
-  sig_serialLock = pyqtSignal(bool)     # Emis a chaque changement de self.__okToSendGCode
+    # Reprise des signaux venant du thread de Com a faire suivre
+    sig_log = pyqtSignal(
+        int, str
+    )  # Message de fonctionnement du composant grblComSerial, renvoie : logSeverity, message string
+    sig_connect = pyqtSignal()  # Emis a la reception de la connexion
+    sig_init = pyqtSignal(
+        str
+    )  # Emis a la reception de la chaine d'initialisation de Grbl, renvoie la chaine complete
+    sig_ok = pyqtSignal()  # Emis a la reception de la chaine "ok"
+    sig_error = pyqtSignal(
+        int
+    )  # Emis a la reception d'une erreur Grbl, renvoie le N° d'erreur
+    sig_alarm = pyqtSignal(
+        int
+    )  # Emis a la reception d'une alarme Grbl, renvoie le N° d'alarme
+    sig_status = pyqtSignal(
+        str
+    )  # Emis a la reception d'un message de status ("<...|.>"), renvoie la ligne complete
+    sig_config = pyqtSignal(str)  # Emis a la reception d'une valeur de config ($XXX)
+    sig_data = pyqtSignal(
+        str
+    )  # Emis a la reception des autres donnees de Grbl, renvoie la ligne complete
+    sig_probe = pyqtSignal(str)  # Emis a la reception d'un résultat de probe
+    sig_emit = pyqtSignal(str)  # Emis a l'envoi des donnees sur le port serie
+    sig_recu = pyqtSignal(str)  # Emis a la reception des donnees sur le port serie
+    sig_debug = pyqtSignal(str)  # Emis a chaque envoi ou reception
+    sig_activity = pyqtSignal(bool)  # Emis a chaque changement de self.__okToSendGCode
+    sig_serialLock = pyqtSignal(
+        bool
+    )  # Emis a chaque changement de self.__okToSendGCode
 
+    def __init__(self):
+        super().__init__()
+        self.__decode = None
+        self.__threads = None
+        self.__Com = None
+        self.__connectStatus = False
+        self.__grblInit = False
+        self.__pooling = True
+        self.__grblVersion = ""
+        self.__grblStatus = ""
+        self.__threads = []
+        self.__refreshGcodeParameters = False
+        self.timerRefreshGcode = QtCore.QTimer()
 
-  def __init__(self):
-    super().__init__()
-    self.__decode        = None
-    self.__threads       = None
-    self.__Com           = None
-    self.__connectStatus = False
-    self.__grblInit      = False
-    self.__pooling       = True
-    self.__grblVersion   = ""
-    self.__grblStatus    = ""
-    self.__threads = []
-    self.__refreshGcodeParameters = False
-    self.timerRefreshGcode = QtCore.QTimer()
+    def setDecodeur(self, decodeur):
+        self.__decode = decodeur
 
+    def getDecoder(self):
+        return self.__decode
 
-  def setDecodeur(self, decodeur):
-    self.__decode = decodeur
+    def startCom(self, comPort: str, baudRate: int):
+        """
+        Gestion des communications serie et des timers dans des threads distincts
+        """
 
+        # TODO : Ajout possibilité de connection réseau
+        # Windows : pseudo serial over TCP driver => rien a faire
+        # Linux : use socat :
+        # sudo socat pty,link=/dev/ttyTCP0,raw tcp:127.0.0.1:1386
+        # comPort = "ttyTCP0" (si dans /dev)
+        # attention aux droits d'accès !
+        # comPort = "/tmp/ttyTCP0" (chemin absolu)
 
-  def getDecoder(self):
-    return self.__decode
+        self.sig_debug.emit("grblCom.startCom(self, {}, {})".format(comPort, baudRate))
 
+        self.sig_log.emit(
+            logSeverity.info.value,
+            "grblCom: Starting grblComSerial thread on {}.".format(comPort),
+        )
+        newComSerial = grblComSerial(self.__decode, comPort, baudRate, self.__pooling)
+        thread = QThread()
+        thread.setObjectName("grblComSerial")
+        self.__threads.append(
+            (thread, newComSerial)
+        )  # need to store worker too otherwise will be gc'd
+        newComSerial.moveToThread(thread)
 
-  def startCom(self, comPort: str, baudRate: int):
-    '''
-    Gestion des communications serie et des timers dans des threads distincts
-    '''
+        # Connecte les signaux provenant du grblComSerial
+        newComSerial.sig_log.connect(self.sig_log.emit)
+        newComSerial.sig_connect.connect(self.on_sig_connect)
+        newComSerial.sig_init.connect(self.on_sig_init)
+        newComSerial.sig_ok.connect(self.sig_ok.emit)
+        newComSerial.sig_error.connect(self.sig_error.emit)
+        newComSerial.sig_alarm.connect(self.sig_alarm.emit)
+        newComSerial.sig_status.connect(self.on_sig_status)
+        newComSerial.sig_config.connect(self.sig_config.emit)
+        newComSerial.sig_data.connect(self.sig_data.emit)
+        newComSerial.sig_probe.connect(self.sig_probe.emit)
+        newComSerial.sig_emit.connect(self.sig_emit.emit)
+        newComSerial.sig_recu.connect(self.sig_recu.emit)
+        newComSerial.sig_debug.connect(self.sig_debug.emit)
+        newComSerial.sig_activity.connect(self.sig_activity.emit)
+        newComSerial.sig_serialLock.connect(self.sig_serialLock.emit)
 
-    # TODO : Ajout possibilité de connection réseau
-    # Windows : pseudo serial over TCP driver => rien a faire
-    # Linux : use socat :
-    # sudo socat pty,link=/dev/ttyTCP0,raw tcp:127.0.0.1:1386
-    # comPort = "ttyTCP0" (si dans /dev)
-    # attention aux droits d'accès !
-    # comPort = "/tmp/ttyTCP0" (chemin absolu)
+        # Rafraichissement GCode différé
+        self.timerRefreshGcode.timeout.connect(self.on_timerRefreshGcode)
 
-    self.sig_debug.emit("grblCom.startCom(self, {}, {})".format(comPort, baudRate))
+        # Start the thread...
+        thread.started.connect(newComSerial.run)
+        thread.start()  # this will emit 'started' and start thread's event loop
 
-    self.sig_log.emit(logSeverity.info.value, 'grblCom: Starting grblComSerial thread on {}.'.format(comPort))
-    newComSerial = grblComSerial(self.__decode, comPort, baudRate, self.__pooling)
-    thread = QThread()
-    thread.setObjectName('grblComSerial')
-    self.__threads.append((thread, newComSerial))  # need to store worker too otherwise will be gc'd
-    newComSerial.moveToThread(thread)
+        # Memorise le communicateur
+        self.__Com = newComSerial
 
-    # Connecte les signaux provenant du grblComSerial
-    newComSerial.sig_log.connect(self.sig_log.emit)
-    newComSerial.sig_connect.connect(self.on_sig_connect)
-    newComSerial.sig_init.connect(self.on_sig_init)
-    newComSerial.sig_ok.connect(self.sig_ok.emit)
-    newComSerial.sig_error.connect(self.sig_error.emit)
-    newComSerial.sig_alarm.connect(self.sig_alarm.emit)
-    newComSerial.sig_status.connect(self.on_sig_status)
-    newComSerial.sig_config.connect(self.sig_config.emit)
-    newComSerial.sig_data.connect(self.sig_data.emit)
-    newComSerial.sig_probe.connect(self.sig_probe.emit)
-    newComSerial.sig_emit.connect(self.sig_emit.emit)
-    newComSerial.sig_recu.connect(self.sig_recu.emit)
-    newComSerial.sig_debug.connect(self.sig_debug.emit)
-    newComSerial.sig_activity.connect(self.sig_activity.emit)
-    newComSerial.sig_serialLock.connect(self.sig_serialLock.emit)
+    @pyqtSlot(bool)
+    def on_sig_connect(self, value: bool):
+        self.sig_debug.emit("grblCom.on_sig_connect(self, {})".format(value))
+        """ Maintien l'etat de connexion """
+        self.__connectStatus = value
+        self.sig_connect.emit()
 
-    # Rafraichissement GCode différé
-    self.timerRefreshGcode.timeout.connect(self.on_timerRefreshGcode)
-    
-    # Start the thread...
-    thread.started.connect(newComSerial.run)
-    thread.start()  # this will emit 'started' and start thread's event loop
+    @pyqtSlot(str)
+    def on_sig_init(self, buff: str):
+        self.sig_debug.emit("grblCom.on_sig_init(self, {})".format(buff))
+        self.__grblInit = True
+        self.__grblVersion = buff.split("[")[0]
+        self.sig_init.emit(buff)
 
-    # Memorise le communicateur
-    self.__Com = newComSerial
+    def grblVersion(self):
+        """Renvoi la chaine Grbl vXXX"""
+        return self.__grblVersion
 
+    @pyqtSlot(str)
+    def on_sig_status(self, buff: str):
+        self.sig_debug.emit("grblCom.on_sig_status(self, {})".format(buff))
+        """ Memorise le status de Grbl a chaque fois qu'on en voi un passer """
+        self.__grblStatus = buff[1:].split("|")[0]
+        self.sig_status.emit(buff)
+        if self.__refreshGcodeParameters and (self.__grblStatus == GRBL_STATUS_IDLE):
+            # Insère la commande Grbl pour relire les paramètres GCode
+            self.__Com.gcodePush(
+                CMD_GRBL_GET_GCODE_PARAMATERS, COM_FLAG_NO_OK | COM_FLAG_NO_ERROR
+            )
+            self.__refreshGcodeParameters = False
 
-  @pyqtSlot(bool)
-  def on_sig_connect(self, value: bool):
-    self.sig_debug.emit("grblCom.on_sig_connect(self, {})".format(value))
-    ''' Maintien l'etat de connexion '''
-    self.__connectStatus = value
-    self.sig_connect.emit()
+    def grblStatus(self):
+        """Renvoi le dernier status Grbl vu"""
+        return self.__grblStatus
 
+    def grblInitStatus(self):
+        """Renvoi le status dinitialisation de Grbl"""
+        return self.__grblInit
 
-  @pyqtSlot(str)
-  def  on_sig_init(self, buff: str):
-    self.sig_debug.emit("grblCom.on_sig_init(self, {})".format(buff))
-    self.__grblInit = True
-    self.__grblVersion = buff.split("[")[0]
-    self.sig_init.emit(buff)
+    def stopCom(self):
+        self.sig_debug.emit("grblCom.stopCom(self)")
+        """ Stop le thread des communications serie """
+        self.clearCom()  # Vide la file d'attente
+        self.sig_log.emit(
+            logSeverity.info.value,
+            self.tr("Sending abort to serial communications thread..."),
+        )
+        self.__Com.abort()
+        # Attente de la fin du (des) thread(s)
+        for thread, worker in self.__threads:
+            thread.quit()  # this will quit **as soon as thread event loop unblocks**
+            thread.wait()  # <- so you need to wait for it to *actually* quit
+        self.sig_log.emit(
+            logSeverity.info.value, self.tr("Child(s) thread(s) terminated.")
+        )
+        self.__grblInit = False
+        self.__threads = []
 
+    def on_timerRefreshGcode(self):
+        # Rafraichissement GCode différé pour laisser le temps à Grbl de traiter les commandes G54-G59
+        self.__refreshGcodeParameters = True
+        self.timerRefreshGcode.stop()
 
-  def grblVersion(self):
-    ''' Renvoi la chaine Grbl vXXX '''
-    return self.__grblVersion
+    def gcodeInsert(self, buff: str, flag=COM_FLAG_NO_FLAG):
+        """Insertion d'une commande GCode dans la pile en mode LiFo (commandes devant passer devant les autres)"""
+        if self.__connectStatus and self.__grblInit:
+            self.__Com.gcodeInsert(buff, flag)
+            # Vérifie si la commande passée modifie les paramètres GCode (resultat de $#)
+            for cmd in GCODE_PARAMETER_OUTPUT_CHANGE_CMD:
+                if cmd in buff:
+                    # On relira dès que Grbl sera Idle...
+                    self.__refreshGcodeParameters = True
+            for cmd in GCODE_SYSTEM_COORDINATE_CHANGE_CMD:
+                if cmd in buff:
+                    self.timerRefreshGcode.start(500)
+        else:
+            self.sig_log.emit(
+                logSeverity.warning.value,
+                self.tr(
+                    "grblCom: Grbl not connected or not initialized, [{}] could not be sent."
+                ).format(buff),
+            )
 
+    def gcodePush(self, buff: str, flag=COM_FLAG_NO_FLAG):
+        """Ajout d'une commande GCode dans la pile en mode FiFo (fonctionnement normal de la pile d'un programe GCode)"""
+        if self.__connectStatus and self.__grblInit:
+            self.__Com.gcodePush(buff, flag)
+            # Vérifie si la commande passée modifie les paramètres GCode (resultat de $#)
+            for cmd in GCODE_PARAMETER_OUTPUT_CHANGE_CMD:
+                if cmd in buff:
+                    # On relira dès que Grbl sera Idle...
+                    self.__refreshGcodeParameters = True
+            for cmd in GCODE_SYSTEM_COORDINATE_CHANGE_CMD:
+                if cmd in buff:
+                    self.timerRefreshGcode.start(500)
+        else:
+            self.sig_log.emit(
+                logSeverity.warning.value,
+                self.tr(
+                    "grblCom: Grbl not connected or not initialized, [{}] could not be sent."
+                ).format(buff),
+            )
 
-  @pyqtSlot(str)
-  def on_sig_status(self, buff: str):
-    self.sig_debug.emit("grblCom.on_sig_status(self, {})".format(buff))
-    ''' Memorise le status de Grbl a chaque fois qu'on en voi un passer '''
-    self.__grblStatus = buff[1:].split('|')[0]
-    self.sig_status.emit(buff)
-    if self.__refreshGcodeParameters and (self.__grblStatus == GRBL_STATUS_IDLE):
-      # Insère la commande Grbl pour relire les paramètres GCode
-      self.__Com.gcodePush(CMD_GRBL_GET_GCODE_PARAMATERS, COM_FLAG_NO_OK | COM_FLAG_NO_ERROR)
-      self.__refreshGcodeParameters = False
+    def realTimePush(self, buff: str, flag=COM_FLAG_NO_FLAG):
+        if self.__connectStatus and self.__grblInit:
+            self.__Com.realTimePush(buff, flag)
+        else:
+            self.sig_log.emit(
+                logSeverity.warning.value,
+                self.tr(
+                    "grblCom: Grbl not connected or not initialized, [{}] could not be sent."
+                ).format(buff),
+            )
 
+    def clearCom(self):
+        self.__Com.clearCom()
 
-  def grblStatus(self):
-    ''' Renvoi le dernier status Grbl vu '''
-    return self.__grblStatus
+    @pyqtSlot()
+    def startPooling(self):
+        if self.__Com is not None:
+            self.__pooling = True
+            self.__Com.startPooling()
 
+    @pyqtSlot()
+    def stopPooling(self):
+        self.__pooling = False
+        self.__Com.stopPooling()
 
-  def grblInitStatus(self):
-    ''' Renvoi le status dinitialisation de Grbl '''
-    return self.__grblInit
+    def isOpen(self):
+        return self.__connectStatus
 
-
-  def stopCom(self):
-    self.sig_debug.emit("grblCom.stopCom(self)")
-    ''' Stop le thread des communications serie '''
-    self.clearCom() # Vide la file d'attente
-    self.sig_log.emit(logSeverity.info.value, self.tr("Sending abort to serial communications thread..."))
-    self.__Com.abort()
-    # Attente de la fin du (des) thread(s)
-    for thread, worker in self.__threads:
-        thread.quit()  # this will quit **as soon as thread event loop unblocks**
-        thread.wait()  # <- so you need to wait for it to *actually* quit
-    self.sig_log.emit(logSeverity.info.value, self.tr("Child(s) thread(s) terminated."))
-    self.__grblInit = False
-    self.__threads = []
-
-
-  def on_timerRefreshGcode(self):
-    # Rafraichissement GCode différé pour laisser le temps à Grbl de traiter les commandes G54-G59
-    self.__refreshGcodeParameters = True
-    self.timerRefreshGcode.stop()
-    
-
-  def gcodeInsert(self, buff: str, flag=COM_FLAG_NO_FLAG):
-    ''' Insertion d'une commande GCode dans la pile en mode LiFo (commandes devant passer devant les autres) '''
-    if self.__connectStatus and self.__grblInit:
-      self.__Com.gcodeInsert(buff, flag)
-      # Vérifie si la commande passée modifie les paramètres GCode (resultat de $#)
-      for cmd in GCODE_PARAMETER_OUTPUT_CHANGE_CMD:
-        if cmd in buff:
-          # On relira dès que Grbl sera Idle...
-          self.__refreshGcodeParameters = True
-      for cmd in GCODE_SYSTEM_COORDINATE_CHANGE_CMD:
-        if cmd in buff:
-          self.timerRefreshGcode.start(500)
-    else:
-      self.sig_log.emit(logSeverity.warning.value, self.tr("grblCom: Grbl not connected or not initialized, [{}] could not be sent.").format(buff))
-
-
-  def gcodePush(self, buff: str, flag=COM_FLAG_NO_FLAG):
-    ''' Ajout d'une commande GCode dans la pile en mode FiFo (fonctionnement normal de la pile d'un programe GCode) '''
-    if self.__connectStatus and self.__grblInit:
-      self.__Com.gcodePush(buff, flag)
-      # Vérifie si la commande passée modifie les paramètres GCode (resultat de $#)
-      for cmd in GCODE_PARAMETER_OUTPUT_CHANGE_CMD:
-        if cmd in buff:
-          # On relira dès que Grbl sera Idle...
-          self.__refreshGcodeParameters = True
-      for cmd in GCODE_SYSTEM_COORDINATE_CHANGE_CMD:
-        if cmd in buff:
-          self.timerRefreshGcode.start(500)
-    else:
-      self.sig_log.emit(logSeverity.warning.value, self.tr("grblCom: Grbl not connected or not initialized, [{}] could not be sent.").format(buff))
-
-
-  def realTimePush(self, buff: str, flag=COM_FLAG_NO_FLAG):
-    if self.__connectStatus and self.__grblInit:
-      self.__Com.realTimePush(buff, flag)
-    else:
-      self.sig_log.emit(logSeverity.warning.value, self.tr("grblCom: Grbl not connected or not initialized, [{}] could not be sent.").format(buff))
-
-
-  def clearCom(self):
-    self.__Com.clearCom()
-
-
-  @pyqtSlot()
-  def startPooling(self):
-    if self.__Com is not None:
-      self.__pooling = True
-      self.__Com.startPooling()
-
-
-  @pyqtSlot()
-  def stopPooling(self):
-    self.__pooling = False
-    self.__Com.stopPooling()
-
-  def isOpen(self):
-    return self.__connectStatus
-
-
-  @pyqtSlot(str)
-  def resetSerial(self):
-    self.__Com.resetSerial()
-
-
-
-
-
+    @pyqtSlot(str)
+    def resetSerial(self):
+        self.__Com.resetSerial()

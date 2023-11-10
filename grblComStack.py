@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+"""""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """
 '                                                                         '
 ' Copyright 2018-2022 Gauthier Brière (gauthier.briere "at" gmail.com)    '
 '                                                                         '
@@ -19,54 +19,51 @@
 ' You should have received a copy of the GNU General Public License       '
 ' along with this program.  If not, see <http://www.gnu.org/licenses/>.   '
 '                                                                         '
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """"""
 
-from PyQt5.QtCore import QObject, QThread, QEventLoop, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QEventLoop, QObject, QThread, pyqtSignal, pyqtSlot
+
 from cn5X_config import *
 
-class grblStack():
-  '''
-  Gestionnaire de file d'attente du port serie.
-  Stocke des couples (CommandeGrbl, flag), soit en mode FiFo (addFiFo()), soit en mode LiFo (addLiFo())
-  et les renvoie dans l'ordre choisi avec la fonction pop().
-  '''
 
-  def __init__(self):
-    self.__data = []
+class grblStack:
+    """
+    Gestionnaire de file d'attente du port serie.
+    Stocke des couples (CommandeGrbl, flag), soit en mode FiFo (addFiFo()), soit en mode LiFo (addLiFo())
+    et les renvoie dans l'ordre choisi avec la fonction pop().
+    """
 
-  def isEmpty(self):
-    return len(self.__data) == 0
+    def __init__(self):
+        self.__data = []
 
-  def count(self):
-    return len(self.__data)
+    def isEmpty(self):
+        return len(self.__data) == 0
 
-  def addFiFo(self, item, flag = COM_FLAG_NO_FLAG):
-    ''' Ajoute un element en mode FiFO, l'element ajoute sera le dernier a sortir
-    '''
-    self.__data.append((item, flag))
+    def count(self):
+        return len(self.__data)
 
-  def addLiFo(self, item, flag = COM_FLAG_NO_FLAG):
-    ''' Ajoute un element en mode LiFO, l'element ajoute sera le premier a sortir
-    '''
-    self.__data.insert(0, (item, flag))
+    def addFiFo(self, item, flag=COM_FLAG_NO_FLAG):
+        """Ajoute un element en mode FiFO, l'element ajoute sera le dernier a sortir"""
+        self.__data.append((item, flag))
 
-  def next(self):
-    ''' Renvoie le prochain element de la Queue sans depiler (le supprimer) ou None si la liste est vide.
-    '''
-    if len(self.__data) > 0:
-      return self.__data[0]
-    else:
-      return None
+    def addLiFo(self, item, flag=COM_FLAG_NO_FLAG):
+        """Ajoute un element en mode LiFO, l'element ajoute sera le premier a sortir"""
+        self.__data.insert(0, (item, flag))
 
-  def pop(self):
-    ''' Depile et renvoie le premier element de la liste ou None si la liste est vide.
-    '''
-    if len(self.__data) > 0:
-      return self.__data.pop(0)
-    else:
-      return None
+    def next(self):
+        """Renvoie le prochain element de la Queue sans depiler (le supprimer) ou None si la liste est vide."""
+        if len(self.__data) > 0:
+            return self.__data[0]
+        else:
+            return None
 
-  def clear(self):
-    ''' Vide toute la pile
-    '''
-    self.__data.clear()
+    def pop(self):
+        """Depile et renvoie le premier element de la liste ou None si la liste est vide."""
+        if len(self.__data) > 0:
+            return self.__data.pop(0)
+        else:
+            return None
+
+    def clear(self):
+        """Vide toute la pile"""
+        self.__data.clear()

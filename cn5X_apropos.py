@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+"""""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """
 '                                                                         '
 ' Copyright 2018-2022 Gauthier Brière (gauthier.briere "at" gmail.com)    '
 '                                                                         '
@@ -19,41 +19,55 @@
 ' You should have received a copy of the GNU General Public License       '
 ' along with this program.  If not, see <http://www.gnu.org/licenses/>.   '
 '                                                                         '
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """"""
 
-from PyQt5.QtCore import Qt, QObject, pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QDialog, QAbstractButton, QDialogButtonBox, QCheckBox, QSpinBox, QDoubleSpinBox, QLineEdit
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QValidator
+from PyQt5.QtCore import QObject, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QValidator
+from PyQt5.QtWidgets import (
+    QAbstractButton,
+    QCheckBox,
+    QDialog,
+    QDialogButtonBox,
+    QDoubleSpinBox,
+    QLineEdit,
+    QSpinBox,
+)
+
 from cn5X_config import *
-from grblCom import grblCom
 from dlgAPropos import *
+from grblCom import grblCom
 from msgbox import *
 
+
 class cn5XAPropos(QObject):
-  ''' Classe assurant la gestion de la boite de dialogue A Propos '''
+    """Classe assurant la gestion de la boite de dialogue A Propos"""
 
-  def __init__(self, versionString: str, licenceFile: str):
-    super().__init__()
-    self.__dlgApropos = QDialog()
-    self.__di = Ui_dlgApropos()
-    self.__di.setupUi(self.__dlgApropos)
-    self.__di.lblVersion.setText(versionString)
+    def __init__(self, versionString: str, licenceFile: str):
+        super().__init__()
+        self.__dlgApropos = QDialog()
+        self.__di = Ui_dlgApropos()
+        self.__di.setupUi(self.__dlgApropos)
+        self.__di.lblVersion.setText(versionString)
 
-    text=open(licenceFile).read()
-    self.__di.qptLicence.setPlainText(text)
+        text = open(licenceFile).read()
+        self.__di.qptLicence.setPlainText(text)
 
-  def showDialog(self):
-    # Centrage de la boite de dialogue sur la fenetre principale
-    ParentX = self.parent().geometry().x()
-    ParentY = self.parent().geometry().y()
-    ParentWidth = self.parent().geometry().width()
-    ParentHeight = self.parent().geometry().height()
-    myWidth = self.__dlgApropos.geometry().width()
-    myHeight = self.__dlgApropos.geometry().height()
-    self.__dlgApropos.setFixedSize(self.__dlgApropos.geometry().width(),self.__dlgApropos.geometry().height())
-    self.__dlgApropos.move(ParentX + int((ParentWidth - myWidth) / 2),ParentY + int((ParentHeight - myHeight) / 2),)
-    self.__dlgApropos.setWindowFlags(Qt.Window | Qt.Dialog)
+    def showDialog(self):
+        # Centrage de la boite de dialogue sur la fenetre principale
+        ParentX = self.parent().geometry().x()
+        ParentY = self.parent().geometry().y()
+        ParentWidth = self.parent().geometry().width()
+        ParentHeight = self.parent().geometry().height()
+        myWidth = self.__dlgApropos.geometry().width()
+        myHeight = self.__dlgApropos.geometry().height()
+        self.__dlgApropos.setFixedSize(
+            self.__dlgApropos.geometry().width(), self.__dlgApropos.geometry().height()
+        )
+        self.__dlgApropos.move(
+            ParentX + int((ParentWidth - myWidth) / 2),
+            ParentY + int((ParentHeight - myHeight) / 2),
+        )
+        self.__dlgApropos.setWindowFlags(Qt.Window | Qt.Dialog)
 
-    RC = self.__dlgApropos.exec()
-    return RC
-
+        RC = self.__dlgApropos.exec()
+        return RC

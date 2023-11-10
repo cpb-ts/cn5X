@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+"""""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """
 '                                                                         '
 ' Copyright 2018-2022 Gauthier Brière (gauthier.briere "at" gmail.com)    '
 '                                                                         '
@@ -19,25 +19,25 @@
 ' You should have received a copy of the GNU General Public License       '
 ' along with this program.  If not, see <http://www.gnu.org/licenses/>.   '
 '                                                                         '
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """"""
 
 grblCompilOptions = {
-  'V': ["Variable spindle enabled"],
-  'N': ["Line numbers enabled"],
-  'M': ["Mist coolant enabled"],
-  'G': ["Safety door support standard"],
-  'C': ["CoreXY enabled"],
-  'P': ["Parking motion enabled"],
-  'Z': ["Homing force origin enabled"],
-  'H': ["Homing single axis enabled"],
-  'T': ["Two limit switches on axis enabled"],
-  'A': ["Allow feed rate overrides in probe cycles"],
-  '*': ["Restore all EEPROM disabled"],
-  '$': ["Restore EEPROM $ settings disabled"],
-  '#': ["Restore EEPROM parameter data disabled"],
-  'I': ["Build info write user string disabled"],
-  'E': ["Force sync upon EEPROM write disabled"],
-  'W': ["Force sync upon work coordinate offset change disabled"],
-  'L': ["Homing init lock sets Grbl into an alarm state upon power up"],
-  'D': ["Use digital input pins"]
+    "V": ["Variable spindle enabled"],
+    "N": ["Line numbers enabled"],
+    "M": ["Mist coolant enabled"],
+    "G": ["Safety door support standard"],
+    "C": ["CoreXY enabled"],
+    "P": ["Parking motion enabled"],
+    "Z": ["Homing force origin enabled"],
+    "H": ["Homing single axis enabled"],
+    "T": ["Two limit switches on axis enabled"],
+    "A": ["Allow feed rate overrides in probe cycles"],
+    "*": ["Restore all EEPROM disabled"],
+    "$": ["Restore EEPROM $ settings disabled"],
+    "#": ["Restore EEPROM parameter data disabled"],
+    "I": ["Build info write user string disabled"],
+    "E": ["Force sync upon EEPROM write disabled"],
+    "W": ["Force sync upon work coordinate offset change disabled"],
+    "L": ["Homing init lock sets Grbl into an alarm state upon power up"],
+    "D": ["Use digital input pins"],
 }
